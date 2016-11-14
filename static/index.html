@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/vue.js"></script>
+    <script>
+    	$(function(){
+    		var vm = new Vue({
+    			el: '#vm',
+    			data: {
+    				name: 'shure',
+    				age: 18,
+                    todos: [
+                        {
+                            name: '产品评审',
+                            description: '新款iPhone上市前评审'
+                        },
+                        {
+                            name: '开发计划',
+                            description: '与PM确定下一版Android开发计划'
+                        },
+                        {
+                            name: 'VC会议',
+                            description: '敲定C轮5000万美元融资'
+                        }
+                    ]
+    			}
+    		});
+    		window.vm = vm;
+
+    		var form = new Vue({
+    			el: '#form',
+    			data: {
+    				name: '',
+    				email: '',
+    				language:[],
+    				subscribe: false,
+    				city:''
+    			}
+    		});
+    		window.form = form;
+    	});
+    </script>
+</head>
+<body>
+    <div id="vm">
+    	<p>Hello {{ name }}</p>
+    	<p>You are {{ age }} years old.</p>
+    	<p v-text="name"></p>
+        <ol>
+            <li v-for="t in todos">
+                <dl>
+                    <dt>{{ t.name }}</dt>
+                    <dd>{{ t.description }}</dd>
+                </dl>
+            </li>
+        </ol>
+    </div>
+
+    <form id="form" action="#">
+    	<p>name:<input type="text" v-model="name"></p>
+    	<p>email:<input type="text" v-model="email"></p>
+
+    	<label><input type="checkbox" v-model="language" value="zh"> Chinese</label>
+		<label><input type="checkbox" v-model="language" value="en"> English</label>
+		<label><input type="checkbox" v-model="language" value="fr"> French</label>
+		<br />
+		<label><input type="checkbox" v-model="subscribe">单个checkbox</label>
+
+		<p>select框</p>
+		<select v-model="city">
+		    <option value="bj">Beijing</option>
+		    <option value="sh">Shanghai</option>
+		    <option value="gz">Guangzhou</option>
+		</select>
+    </form>
+
+</body>
+</html>
