@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style type="text/css">
+		.reslt-lest,.add-list{
+			width: 400px;
+			border: 1px solid #ccc;
+			background: #f4f7f9;
+			float: left;
+		}
+		.reslt-lest{
+			margin-right: 20px;
+		}
+		.title{
+			background: #ccc;
+			border-bottom: 1px solid #ccc;
+			padding: 6px 0 6px 10px;
+		}
+		#vmAdd,#vm{
+			padding-left: 20px;
+		}
+	</style>
+	<script src="js/jquery.min.js"></script>
+    <script src="js/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/vue.resource/1.0.3/vue-resource.min.js"></script>
+    <script type="text/javascript">
+
+    	function showError(resp){
+    		resp.json().then(function(result){
+    			console.log('Error: '+result.message);
+    		})
+    	}
+
+    	$(function(){
+    		var vm = new Vue({
+    			el: '#vm',
+    			data: {
+    				title: 'todo list',
+    				todos: [],
+    				loading: false
+    			},
+    			created: function(){
+    				this.init();
+    			},
+    			methods: {
+    				init: function(){
+    					var that = this;
+    					that.loading = true;
+    					that.$resource('/api/todos').get().then(function(resp){
+    						that.loading = false;
+    						resp.json().then(function(result){
+    							that.todos = result.todos;
+    						});
+    					}, function(resp){
+    						that.loading = false;
+    						showError(resp);
+    					});
+    				},
+    				create: function(todo){
+    					var that = this;
+    					that.$resource('/api/todos').save(todo).then(function(resp){
+    						resp.json().then(function(result){
+    							that.todos.push(result);
+    						});
+    					}, showError);
+    				},
+    				update: function(todo,prop,e){
+    					var that = this;
+    					var t = {
+    						name: todo.name,
+    						description: todo.description
+    					};
+    					t[prop] = e.target.innerText;
+    					if(t[prop] === todo[prop]){
+    						return ;
+    					}
+    					that.$resource('/api/todos/' + todo.id).update(t).then(function(resp){
+    						resp.json().then(function(r){
+    							todo.name = r.name;
+    							todo.description = r.description;
+    						});
+    					}, function(resp){
+    						e.target.innerText = todo[prop];
+    						showError(resp);
+    					});
+    				},
+    				remove: function(todo){
+                        var that = this;
+                        that.$resource('/api/todos/'+ todo.id).delete().then(function(resp){
+                            var i, index = -1;
+                            for(i = 0; i < that.todos.length;i++){
+                                if(that.todos[i].id === todo.id){
+                                    index = i;
+                                    break;
+                                }
+                            }
+                            if(index >= 0){
+                                that.todos.splice(index,1);
+                            }
+                        }, showError);
+                    }
+    			}
+    		});
+    		window.vm = vm;
+
+    		var vmAdd = new Vue({
+    			el: '#vmAdd',
+    			data: {
+    				name: '',
+    				description: ''
+    			},
+    			methods: {
+    				submit: function(){
+    					vm.create(this.$data);
+    					this.name = '';
+    					this.description = '';
+    				}
+    			}
+    		});
+    	});
+    </script>
+</head>
+<body>
+	<div class="reslt-lest">
+		<div class="title">Todo List</div>
+		<div id="vm">
+		    <h3>{{ title }}</h3>
+		    <ol>
+		        <li v-for="t in todos">
+		            <dl>
+		                <dt contenteditable="true" v-on:blur="update(t, 'name', $event)">{{ t.name }}</dt>
+		                <dd contenteditable="true" v-on:blur="update(t, 'description', $event)">{{ t.description }}</dd>
+		                <dd><a href="#0" v-on:click="remove(t)">Delete</a></dd>
+		            </dl>
+		        </li>
+		    </ol>
+		</div>
+	</div>
+	<div class="add-list">
+		<div class="title">Add List</div>
+		<form id="vmAdd" action="#0" v-on:submit.prevent="submit">
+		    <p><input type="text" v-model="name"></p>
+		    <p><input type="text" v-model="description"></p>
+		    <p><button type="submit">Add</button></p>
+		</form>
+	</div>
+</body>
+</html>
